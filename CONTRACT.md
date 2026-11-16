@@ -22,7 +22,7 @@ Archive(path=":memory:", fault=None) 建立 SDK1 归档，支持 with；close() 
 - read_result(job) -> {job: {id, name, source, target, field}, result_id, result}：未运行时后二者均为 None，未知任务报 NotFound。
 - run_job(job) -> 同 read_result：按固定绑定重算并发布新结果 ID。成功重跑保留同样数值，但增加一次结果记录并移动任务的结果指针。无部分结果读取接口。
 
-ValidationError 表示非法输入、零面积、内域重叠或绑定不匹配；Conflict 表示请求或任务名已绑定不同内容；NotFound 表示未知修订、版本、任务、名字或回执。它们分别继承 ValueError、ValueError、LookupError。SQLite 与故障钩子的异常原样传播。无效写入不新增业务版本或回执，失败不移动 head 或已有结果指针。调用方不得直接改库内不可变表。
+ValidationError 表示非法输入、零面积、内域重叠或绑定不匹配；Conflict 表示请求或任务名已绑定不同内容；NotFound 表示未知修订、版本、任务、名字或回执；Infeasible 表示控制任务在固定支持下无法同时满足源守恒与目标控制。它们分别继承 ValueError、ValueError、LookupError、ValueError。SQLite 与故障钩子的异常原样传播。无效写入不新增业务版本或回执，失败不移动 head 或已有结果指针。调用方不得直接改库内不可变表。
 
 ## 计算与结果
 
@@ -41,7 +41,7 @@ result 的所有数值为 Fraction：
 
 ## 存储及失败边界
 
-metadata.version=1。grids/heads/grid_receipts、fields/field_receipts、jobs、results 保存上述真实业务关系并启用外键。无删除和历史重绑定接口。输入和引用校验在写入前完成，写入使用 BEGIN IMMEDIATE 事务；结果插入与指针更新同事务完成。
+metadata.version=1。grids/heads/grid_receipts、fields/field_receipts、jobs、results 保存上述真实业务关系并启用外键。控制任务另存于 controlled_jobs 与 controlled_results（外键同样启用，建表使用 IF NOT EXISTS，可直接打开旧版本数据库而不改动旧数据）。无删除和历史重绑定接口。输入和引用校验在写入前完成，写入使用 BEGIN IMMEDIATE 事务；结果插入与指针更新同事务完成。控制任务复用 job.before_commit、result.after_insert、result.before_commit 事件名，失败语义与普通任务一致。
 
 fault(event) 为同步故障注入设施；公开事件见 README。钩子只出现在真实操作内部。提交前抛错会回滚整笔写入，原异常传播。成功提交后才返回。重新打开后的查询与已提交状态一致，失败操作可重新请求。注入测试验证异常回滚，不声称其等同于进程终止测试。
 

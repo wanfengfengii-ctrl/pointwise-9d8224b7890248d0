@@ -1,7 +1,7 @@
 """Revision-bound exact area observations and conservative remapping."""
-from .errors import Conflict, NotFound, ValidationError
+from .errors import Conflict, Infeasible, NotFound, ValidationError
 from .storage import Store
-from . import grids, fields, jobs, remap
+from . import grids, fields, jobs, remap, controlled
 
 
 class Archive:
@@ -37,6 +37,16 @@ class Archive:
 
     def read_result(self, job):
         return jobs.read_result(self._store, job)
+
+    def create_controlled_job(self, name, source, target, field, control):
+        return controlled.create_controlled_job(
+            self._store, name, source, target, field, control)
+
+    def run_controlled_job(self, job):
+        return controlled.run_controlled_job(self._store, job)
+
+    def read_controlled_result(self, job):
+        return controlled.read_controlled_result(self._store, job)
 
     def close(self):
         self._store.close()

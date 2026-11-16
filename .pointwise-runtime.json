@@ -2,6 +2,6 @@
   "version": 1,
   "kind": "cli",
   "setup": [],
-  "verify": ["python3.11", "-B", "-m", "unittest", "discover", "-s", "tests", "-t", ".", "-v"],
+  "verify": ["bash", "-lc", "python3.11 -B -m unittest discover -s tests -t . -v && python3.11 -B -m verify_controlled"],
   "demo": ["python3.11", "-B", "-m", "gridarchive", "demo"]
 }

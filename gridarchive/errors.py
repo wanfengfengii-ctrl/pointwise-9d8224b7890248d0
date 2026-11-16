@@ -8,3 +8,7 @@ class Conflict(ValueError):
 
 class NotFound(LookupError):
     """The requested persisted identity does not exist."""
+
+
+class Infeasible(ValueError):
+    """A controlled task has no allocation satisfying conservation and controls."""
